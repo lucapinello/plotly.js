@@ -48,55 +48,57 @@ function convertStyle(gd, trace) {
 
     if(trace.visible !== true) return opts;
 
-    if(subTypes.hasText(trace)) {
-        opts.text = convertTextStyle(trace, gd);
-        opts.textSel = convertTextSelection(trace, trace.selected);
-        opts.textUnsel = convertTextSelection(trace, trace.unselected);
-    }
+    if(trace.mode !== 'none') {
+        if(subTypes.hasText(trace)) {
+            opts.text = convertTextStyle(trace, gd);
+            opts.textSel = convertTextSelection(trace, trace.selected);
+            opts.textUnsel = convertTextSelection(trace, trace.unselected);
+        }
 
-    if(subTypes.hasMarkers(trace)) {
-        opts.marker = convertMarkerStyle(trace);
-        opts.markerSel = convertMarkerSelection(trace, trace.selected);
-        opts.markerUnsel = convertMarkerSelection(trace, trace.unselected);
+        if(subTypes.hasMarkers(trace)) {
+            opts.marker = convertMarkerStyle(trace);
+            opts.markerSel = convertMarkerSelection(trace, trace.selected);
+            opts.markerUnsel = convertMarkerSelection(trace, trace.unselected);
 
-        if(!trace.unselected && Array.isArray(trace.marker.opacity)) {
-            var mo = trace.marker.opacity;
-            opts.markerUnsel.opacity = new Array(mo.length);
-            for(i = 0; i < mo.length; i++) {
-                opts.markerUnsel.opacity[i] = DESELECTDIM * mo[i];
+            if(!trace.unselected && Array.isArray(trace.marker.opacity)) {
+                var mo = trace.marker.opacity;
+                opts.markerUnsel.opacity = new Array(mo.length);
+                for(i = 0; i < mo.length; i++) {
+                    opts.markerUnsel.opacity[i] = DESELECTDIM * mo[i];
+                }
             }
         }
-    }
 
-    if(subTypes.hasLines(trace)) {
-        opts.line = {
-            overlay: true,
-            thickness: trace.line.width,
-            color: trace.line.color,
-            opacity: trace.opacity
-        };
+        if(subTypes.hasLines(trace)) {
+            opts.line = {
+                overlay: true,
+                thickness: trace.line.width,
+                color: trace.line.color,
+                opacity: trace.opacity
+            };
 
-        var dashes = (constants.DASHES[trace.line.dash] || [1]).slice();
-        for(i = 0; i < dashes.length; ++i) {
-            dashes[i] *= trace.line.width;
+            var dashes = (constants.DASHES[trace.line.dash] || [1]).slice();
+            for(i = 0; i < dashes.length; ++i) {
+                dashes[i] *= trace.line.width;
+            }
+            opts.line.dashes = dashes;
         }
-        opts.line.dashes = dashes;
-    }
 
-    if(trace.error_x && trace.error_x.visible) {
-        opts.errorX = convertErrorBarStyle(trace, trace.error_x);
-    }
+        if(trace.error_x && trace.error_x.visible) {
+            opts.errorX = convertErrorBarStyle(trace.error_x);
+        }
 
-    if(trace.error_y && trace.error_y.visible) {
-        opts.errorY = convertErrorBarStyle(trace, trace.error_y);
-    }
+        if(trace.error_y && trace.error_y.visible) {
+            opts.errorY = convertErrorBarStyle(trace.error_y);
+        }
 
-    if(!!trace.fill && trace.fill !== 'none') {
-        opts.fill = {
-            closed: true,
-            fill: trace.fillcolor,
-            thickness: 0
-        };
+        if(trace.fill) {
+            opts.fill = {
+                closed: true,
+                fill: trace.fillcolor,
+                thickness: 0
+            };
+        }
     }
 
     return opts;
@@ -360,16 +362,12 @@ function convertTextSelection(trace, target) {
     return optsOut;
 }
 
-function convertErrorBarStyle(trace, target) {
+function convertErrorBarStyle(target) {
     var optsOut = {
         capSize: target.width * 2,
         lineWidth: target.thickness,
         color: target.color
     };
-
-    if(target.copy_ystyle) {
-        optsOut = trace.error_y;
-    }
 
     return optsOut;
 }
